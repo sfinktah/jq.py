@@ -45,7 +45,12 @@ class jq_build_ext(build_ext):
             tarball_path=oniguruma_lib_tarball_path,
             lib_dir=oniguruma_lib_build_dir,
             commands=[
-                ["./configure", "CFLAGS=-fPIC", "--prefix=" + oniguruma_lib_install_dir],
+                # CC  = x86_64-w64-mingw32-gcc.exe
+                # CFLAGS  = -v -Wall -O2 -I. -static-libgcc -o
+                ["./configure",
+                    "CC=x86_64-w64-mingw32-gcc.exe",
+                    "CFLAGS=-fPIC -v -I. -static -static-libgcc",
+                    "--prefix=" + oniguruma_lib_install_dir],
                 ["make"],
                 ["make", "install"],
             ])
@@ -55,9 +60,19 @@ class jq_build_ext(build_ext):
         self._build_lib(
             tarball_path=jq_lib_tarball_path,
             lib_dir=jq_lib_dir,
+            # Use the --host= and --target= ./configure options to select a
             commands=[
-                ["./configure", "CFLAGS=-fPIC -pthread", "--disable-maintainer-mode", "--with-oniguruma=" + oniguruma_lib_install_dir],
-                ["make"],
+                ["./configure", 
+                    "CC=x86_64-w64-mingw32-gcc.exe", 
+                    "CFLAGS=-fPIC -v -I. -static -static-libgcc -pthread", 
+                    "--disable-maintainer-mode", 
+                    "--with-oniguruma=" + oniguruma_lib_install_dir,
+                    "--target=win32",
+                    "--host=x86_64-w64-mingw32",
+                ],
+                ["make",
+                    # "LDFLAGS=-all-static",
+                ],
             ])
 
     def _build_lib(self, tarball_path, lib_dir, commands):
